@@ -15,9 +15,7 @@
   "bugs": {
     "url": "https://github.com/Haixing-Hu/vue-i18n/issues"
   },
-  "main": [
-    "src/vue-i18n.js"
-  ],
+  "main": "src/vue-i18n.js",
   "configs": {
     "directories": {
       "dist": "dist",
