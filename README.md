@@ -152,6 +152,8 @@ Vue.use(plugin, {
 ### `baseUrl`
 Specify the base URL of the localization files, which could be either an
 absolute URL, or a relative URL relative to the current javascript file.
+May also specify an array of URLs in case messages are needed from
+multiple sources.
 
 The default value of this option is `i18n`.
 
