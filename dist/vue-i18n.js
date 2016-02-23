@@ -96,47 +96,71 @@
 	   * @param language
 	   *    the code of the language to be set.
 	   */
-	  Vue.prototype.$setLanguage = function(language) {
-	    // console.debug("Setting language: " + language);
-	    var url = opts.baseUrl + "/" + language + ".json";
-	    var fallbackUrl = opts.baseUrl + "/" + opts.fallbackLanguage + ".json";
+	  Vue.prototype.$setLanguage = function(language, callback) {
+	    var doneCtr = 0;
+	    
+	    var baseUrlArr;
+	    
+	    if (jquery.isArray(opts.baseUrl)) {
+	      baseUrlArr = opts.baseUrl;
+	    } else {
+	      baseUrlArr = [opts.baseUrl];  
+	    }
+	    
+	    var urlCnt = baseUrlArr.length;
+	    
 	    var vm = this;
+	    
+	    function successCallback(data) {
+	      
+	      doneCtr++;
+	      
+	      Vue.prototype.$i18n = jquery.extend(Vue.prototype.$i18n, data);
+	      
+	      if (urlCnt == doneCtr) {
+	        Vue.prototype.$language = language;
+	        update(vm.$root);
+	        if (callback) {
+	          callback();
+	        }
+	      }
+	      
+	    }
+	
 	    Vue.prototype.$language = "";
 	    Vue.prototype.$i18n = {};
-	    jquery.ajax({
-	      url: url,
-	      dataType: "json",
-	      type: "GET",
-	      async: opts.async,
-	      timeout: opts.timeout,
-	      success: function(data) {
-	        // console.debug("Sucessfully load: " + url);
-	        Vue.prototype.$language = language;
-	        Vue.prototype.$i18n = data;
-	        update(vm.$root);
-	      },
-	      error: function() {
-	        // console.debug("Failed to load: " + url);
-	        // try to load localization file for the fallback language
-	        jquery.ajax({
-	          url: fallbackUrl,
-	          dataType: "json",
-	          type: "GET",
-	          async: opts.async,
-	          timeout: opts.timeout,
-	          success: function(data) {
-	            // console.debug("Sucessfully load: " + fallbackUrl);
-	            Vue.prototype.$language = language;
-	            Vue.prototype.$i18n = data;
-	            update(vm.$root);
-	          },
-	          error: function() {
-	            throw new Error("Cannot load localization file: " + url);
-	          }
-	        });
-	      }
-	    });
+	        
+	    for (var i = 0; i < urlCnt; i++) {
+	      var baseUrl = baseUrlArr[i];
+	      var url = baseUrl + "/" + language + ".json";
+	      var fallbackUrl = baseUrl + "/" + opts.fallbackLanguage + ".json";
+	      
+	      jquery.ajax({
+	        url: url,
+	        dataType: "json",
+	        type: "GET",
+	        async: opts.async,
+	        timeout: opts.timeout,
+	        success: successCallback,
+	        error: function() {
+	          // try to load localization file for the fallback language
+	          jquery.ajax({
+	            url: fallbackUrl,
+	            dataType: "json",
+	            type: "GET",
+	            async: opts.async,
+	            timeout: opts.timeout,
+	            success: successCallback,
+	            error: function() {
+	              throw new Error("Cannot load localization file: " + url);
+	            }
+	          });
+	        }
+	      });
+	    }
+	    
 	  };
+
 	};
 	
 	/**
